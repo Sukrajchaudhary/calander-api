@@ -16,6 +16,8 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
 
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:8080',
 ];
 
 export const corsMiddleware = cors({

@@ -5,20 +5,12 @@ import config from '../config/config';
 interface FieldError {
   field: string;
   message: string;
-  type: string;
 }
 
 interface ErrorResponse {
-  success: false;
-  error: {
-    statusCode: number;
-    message: string;
-    fields?: FieldError[];
-    [key: string]: any;
-  };
-  timestamp: string;
-  path?: string;
-  method?: string;
+  title: string;
+  message: string;
+  errors?: FieldError[];
 }
 
 export const globalErrorHandler = (
@@ -30,91 +22,80 @@ export const globalErrorHandler = (
   const isDevelopment = config.app.env === 'development';
 
   let statusCode = 500;
-  let message = 'Internal Server Error';
-  let errorDetails: any = {};
+  let title = 'Internal Server Error';
+  let message = 'An error occurred while processing your request';
   let fieldErrors: FieldError[] | undefined = undefined;
 
   if (error instanceof ValidationError) {
     statusCode = error.statusCode;
+    title = 'Validation Error';
     message = error.message;
-    // Check if error has field-level validation errors
     if ((error as any).fields) {
-      fieldErrors = (error as any).fields;
-      message = 'Validation failed';
+      fieldErrors = (error as any).fields.map((f: any) => ({
+        field: f.field,
+        message: f.message,
+      }));
     }
   } else if (error instanceof AppError) {
     statusCode = error.statusCode;
+    title = getErrorTitle(statusCode);
     message = error.message;
   } else if (error instanceof Error) {
-    // In production, don't expose internal error messages
     if (isDevelopment) {
       message = error.message;
-      errorDetails.stack = error.stack;
-    } else {
-      // Generic message for production to prevent information disclosure
-      message = 'An error occurred while processing your request';
-      // Log full error details server-side only
-      console.error('Internal Error:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
     }
+    console.error('Internal Error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
   }
 
   const errorResponse: ErrorResponse = {
-    success: false,
-    error: {
-      statusCode,
-      message,
-      ...(fieldErrors && { fields: fieldErrors }),
-      ...errorDetails,
-    },
-    timestamp: new Date().toISOString(),
-    path: _req.path,
-    method: _req.method,
+    title,
+    message,
+    ...(fieldErrors && { errors: fieldErrors }),
   };
 
-  // Remove sensitive data in production
-  if (!isDevelopment) {
-    delete errorResponse.path;
-    delete errorResponse.method;
-  }
-
-  // Log error details (sanitized for production)
-  const logData: any = {
-    statusCode,
-    message: isDevelopment ? message : 'Error occurred',
-    timestamp: new Date().toISOString(),
-  };
-  
   if (isDevelopment) {
-    logData.fields = fieldErrors;
-    logData.path = _req.path;
-    logData.method = _req.method;
-  }
-  
-  // Always log full details server-side
-  console.error('Error:', logData);
-  
-  if (isDevelopment && error instanceof Error && error.stack) {
-    console.error('Stack trace:', error.stack);
+    console.error('Error:', {
+      statusCode,
+      title,
+      message,
+      errors: fieldErrors,
+      path: _req.path,
+      method: _req.method,
+    });
+    if (error instanceof Error && error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
   }
 
   res.status(statusCode).json(errorResponse);
 };
 
+function getErrorTitle(statusCode: number): string {
+  const titles: Record<number, string> = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    409: 'Conflict',
+    422: 'Unprocessable Entity',
+    429: 'Too Many Requests',
+    500: 'Internal Server Error',
+    502: 'Bad Gateway',
+    503: 'Service Unavailable',
+  };
+  return titles[statusCode] || 'Error';
+}
+
 export const notFoundHandler = (_req: Request, res: Response): void => {
-  res.status(404).json({
-    success: false,
-    error: {
-      statusCode: 404,
-      message: 'Route not found',
-    },
-    timestamp: new Date().toISOString(),
-    path: _req.path,
-    method: _req.method,
-  });
+  const errorResponse: ErrorResponse = {
+    title: 'Not Found',
+    message: 'Route not found',
+  };
+  res.status(404).json(errorResponse);
 };
 
 export const asyncHandler = (fn: Function) => {
