@@ -344,12 +344,12 @@ class CalanderService {
       async updateInstanceStatus(
             instanceId: string,
             status: 'scheduled' | 'cancelled' | 'completed'
-      ): Promise<IClassInstance | null> {
+      ): Promise<(IClassInstance & { classId?: any }) | null> {
             return ClassInstance.findByIdAndUpdate(
                   instanceId,
                   { status },
                   { new: true }
-            ).lean();
+            ).populate('classId', 'title description instructor location capacity status').lean();
       }
 
       /**

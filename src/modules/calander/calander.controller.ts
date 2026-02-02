@@ -217,10 +217,16 @@ class CalanderController {
                         return;
                   }
 
-                  const response: ISuccessResponse<IClassInstance> = {
+                  const response: ISuccessResponse<{
+                        instance: IClassInstance & { classId?: any };
+                        class?: any;
+                  }> = {
                         title: 'Instance Updated',
                         message: 'Instance status updated successfully',
-                        data: updatedInstance,
+                        data: {
+                              instance: updatedInstance,
+                              class: updatedInstance.classId,
+                        },
                   };
 
                   res.status(200).json(response);
