@@ -1,0 +1,84 @@
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: calander-api-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DATABASE_USERNAME:-calanderuser}
+      MONGO_INITDB_ROOT_PASSWORD: ${DATABASE_PASSWORD:-Password@123}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - calander-api-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: calander-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+
+      # MongoDB Connection (Docker internal)
+      MONGODB_URI: mongodb://${DATABASE_USERNAME:-calanderuser}:Password%40123@mongodb:27017/?authSource=admin
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-calanderuser}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-Password@123}
+
+      # JWT & API Settings
+      JWT_SECRET: ${JWT_SECRET}
+      API_PREFIX: ${API_PREFIX:-/api}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    networks:
+      - calander-api-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: pnpm run dev
+
+  # Mongo Express (Optional - MongoDB GUI)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: calander-api-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${DATABASE_USERNAME:-calanderuser}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${DATABASE_PASSWORD:-Password@123}
+      ME_CONFIG_MONGODB_URL: mongodb://${DATABASE_USERNAME:-calanderuser}:Password%40123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8082:8081"
+    networks:
+      - calander-api-network
+    depends_on:
+      - mongodb
+    profiles:
+      - tools
+
+networks:
+  calander-api-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local

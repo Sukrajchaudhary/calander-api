@@ -1,0 +1,23 @@
+# Development Dockerfile for Calander API
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies for node-gyp and native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm and dependencies
+RUN npm install -g pnpm && pnpm install
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start development server with nodemon for hot reload
+CMD ["npm", "run", "dev"]

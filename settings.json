@@ -1,0 +1,495 @@
+{
+  "info": {
+    "_postman_id": "settings-api-collection",
+    "name": "Settings API",
+    "description": "API endpoints for Settings module - Company Logo, Contact Info, and Social Media CRUD operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get All Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            },
+            "description": "Get all settings including company logos, contact info, and social media links"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Company Logos",
+      "item": [
+        {
+          "name": "Get All Company Logos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/logos",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "logos"]
+            },
+            "description": "Get all company logos"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company Logo by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/logos/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "logos", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "logo_id_here",
+                  "description": "Logo ID"
+                }
+              ]
+            },
+            "description": "Get a specific company logo by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Company Logo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"logoUrl\": \"https://example.com/logo.png\",\n  \"logoType\": \"primary\",\n  \"altText\": \"Company Logo\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/logos",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "logos"]
+            },
+            "description": "Add a new company logo (Admin only)\n\nlogoType options: primary, secondary, favicon, watermark"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company Logo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"logoUrl\": \"https://example.com/new-logo.png\",\n  \"logoType\": \"primary\",\n  \"altText\": \"Updated Company Logo\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/logos/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "logos", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "logo_id_here",
+                  "description": "Logo ID"
+                }
+              ]
+            },
+            "description": "Update an existing company logo (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Company Logo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/logos/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "logos", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "logo_id_here",
+                  "description": "Logo ID"
+                }
+              ]
+            },
+            "description": "Delete a company logo (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact Info",
+      "item": [
+        {
+          "name": "Get Contact Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "contact"]
+            },
+            "description": "Get contact information"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Contact Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"contact@company.com\",\n  \"phoneNumber\": \"+1-234-567-8900\",\n  \"alternatePhoneNumber\": \"+1-234-567-8901\",\n  \"faxNumber\": \"+1-234-567-8902\",\n  \"address\": \"123 Main Street, Suite 100\",\n  \"city\": \"Tokyo\",\n  \"state\": \"Tokyo\",\n  \"country\": \"Japan\",\n  \"postalCode\": \"100-0001\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "contact"]
+            },
+            "description": "Update contact information (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Contact Info",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "contact"]
+            },
+            "description": "Delete/Reset contact information (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Social Media",
+      "item": [
+        {
+          "name": "Get All Social Media Links",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Get all social media links"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Social Media Link by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "social_media_id_here",
+                  "description": "Social Media Link ID"
+                }
+              ]
+            },
+            "description": "Get a specific social media link by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Social Media Link - Facebook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"facebook\",\n  \"url\": \"https://facebook.com/companypage\",\n  \"label\": \"Follow us on Facebook\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Add a Facebook social media link (Admin only)\n\nPlatform options: facebook, twitter, instagram, linkedin, youtube, tiktok, pinterest, whatsapp, telegram, other"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Social Media Link - Instagram",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"instagram\",\n  \"url\": \"https://instagram.com/companypage\",\n  \"label\": \"Follow us on Instagram\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Add an Instagram social media link (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Social Media Link - Twitter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"twitter\",\n  \"url\": \"https://twitter.com/companypage\",\n  \"label\": \"Follow us on Twitter\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Add a Twitter social media link (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Social Media Link - LinkedIn",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"linkedin\",\n  \"url\": \"https://linkedin.com/company/companypage\",\n  \"label\": \"Connect on LinkedIn\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Add a LinkedIn social media link (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Social Media Link - YouTube",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"youtube\",\n  \"url\": \"https://youtube.com/c/companychannel\",\n  \"label\": \"Subscribe on YouTube\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Add a YouTube social media link (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Social Media Link - WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"whatsapp\",\n  \"url\": \"https://wa.me/1234567890\",\n  \"label\": \"Chat on WhatsApp\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media"]
+            },
+            "description": "Add a WhatsApp social media link (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Social Media Link",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"facebook\",\n  \"url\": \"https://facebook.com/newcompanypage\",\n  \"label\": \"Updated Facebook Page\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "social_media_id_here",
+                  "description": "Social Media Link ID"
+                }
+              ]
+            },
+            "description": "Update an existing social media link (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Social Media Link",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings/social-media/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings", "social-media", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "social_media_id_here",
+                  "description": "Social Media Link ID"
+                }
+              ]
+            },
+            "description": "Delete a social media link (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
