@@ -15,13 +15,35 @@ const TimeSlotSchema = new Schema({
       },
 }, { _id: false });
 
+// Day Wise Time Slot Schema
+const DayWiseTimeSlotSchema = new Schema({
+      day: {
+            type: String,
+            enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+            required: true,
+      },
+      timeSlots: [TimeSlotSchema],
+}, { _id: false });
+
+// Monthly Day Wise Slot Schema (for month day-specific time slots)
+const MonthlyDayWiseSlotSchema = new Schema({
+      day: {
+            type: Number,
+            min: 1,
+            max: 31,
+            required: true,
+      },
+      timeSlots: [TimeSlotSchema],
+}, { _id: false });
+
 // Recurrence Config Schema (embedded)
 const RecurrenceConfigSchema = new Schema({
       type: {
             type: String,
-            enum: ['none', 'daily', 'weekly', 'monthly', 'custom'],
+            enum: ['none', 'daily', 'weekly', 'monthly', 'yearly', 'custom'],
             required: true,
       },
+      dayWiseTimeSlots: [DayWiseTimeSlotSchema],
       dailyTimeSlots: [TimeSlotSchema],
       weeklyDays: [{
             type: String,
@@ -34,6 +56,7 @@ const RecurrenceConfigSchema = new Schema({
             max: 31,
       }],
       monthlyTimeSlots: [TimeSlotSchema],
+      monthlyDayWiseSlots: [MonthlyDayWiseSlotSchema],
       customDays: [{
             type: String,
             enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
@@ -44,6 +67,18 @@ const RecurrenceConfigSchema = new Schema({
             max: 52,
       },
       customTimeSlots: [TimeSlotSchema],
+      yearlyMonth: {
+            type: Number,
+            min: 0,
+            max: 11,
+      },
+      yearlyDay: {
+            type: Number,
+            min: 1,
+            max: 31,
+      },
+      yearlyTimeSlots: [TimeSlotSchema],
+
       startDate: {
             type: Date,
             required: true,
@@ -86,6 +121,10 @@ const ClassSchema = new Schema<IClass>(
                   min: 1,
                   max: 1000,
             },
+            availability: {
+                  type: Boolean,
+                  default: true,
+            },
             isRecurring: {
                   type: Boolean,
                   default: false,
@@ -119,6 +158,9 @@ const ClassSchema = new Schema<IClass>(
 ClassSchema.index({ scheduledDate: 1 });
 ClassSchema.index({ 'recurrence.startDate': 1, 'recurrence.endDate': 1 });
 ClassSchema.index({ isRecurring: 1, status: 1 });
+ClassSchema.index({ availability: 1 });
+// Text index for search
+ClassSchema.index({ title: 'text', instructor: 'text' });
 
 // Class Instance Schema (for generated recurring instances)
 const ClassInstanceSchema = new Schema<IClassInstance>(

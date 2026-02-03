@@ -51,6 +51,10 @@ class CalanderController {
                         isRecurring: req.query.isRecurring !== undefined
                               ? req.query.isRecurring === 'true'
                               : undefined,
+                        availability: req.query.availability !== undefined
+                              ? req.query.availability === 'true'
+                              : undefined,
+                        search: req.query.search as string | undefined,
                         page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
                         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
                   };
@@ -146,6 +150,36 @@ class CalanderController {
                         title: 'Class Deleted',
                         message: 'Class and associated instances deleted successfully',
                         data: null,
+                  };
+
+                  res.status(200).json(response);
+            }
+      );
+
+      /**
+       * Update class status
+       * PATCH /api/v1/calander/:id/status
+       */
+      updateClassStatus = asyncHandler(
+            async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+                  const { id } = req.params;
+                  const { status } = req.body;
+
+                  const updatedClass = await CalanderService.updateClassStatus(id, status);
+
+                  if (!updatedClass) {
+                        const errorResponse: IErrorResponse = {
+                              title: 'Not Found',
+                              message: 'Class not found',
+                        };
+                        res.status(404).json(errorResponse);
+                        return;
+                  }
+
+                  const response: ISuccessResponse<IClass> = {
+                        title: 'Status Updated',
+                        message: `Class status updated to ${status}. Associated future instances have been updated accordingly.`,
+                        data: updatedClass,
                   };
 
                   res.status(200).json(response);

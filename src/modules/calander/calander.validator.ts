@@ -9,7 +9,7 @@ const TIME_FORMAT = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
 const VALID_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 // Recurrence types
-const RECURRENCE_TYPES = ['none', 'daily', 'weekly', 'monthly', 'custom'];
+const RECURRENCE_TYPES = ['none', 'daily', 'weekly', 'monthly', 'yearly', 'custom'];
 
 /**
  * Unified validation error handler
@@ -98,59 +98,80 @@ const validateRecurrenceConfig = (value: any): boolean => {
       switch (value.type) {
             case 'daily':
                   if (!value.dailyTimeSlots || !Array.isArray(value.dailyTimeSlots) || value.dailyTimeSlots.length === 0) {
-                        throw new Error('Daily recurrence requires at least one time slot');
+                        throw new Error('Daily recurrence requires a single set of dailyTimeSlots for every day');
                   }
                   validateTimeSlots(value.dailyTimeSlots);
                   break;
 
             case 'weekly':
-                  if (!value.weeklyDays || !Array.isArray(value.weeklyDays) || value.weeklyDays.length === 0) {
-                        throw new Error('Weekly recurrence requires at least one day');
+                  if (!value.dayWiseTimeSlots || !Array.isArray(value.dayWiseTimeSlots) || value.dayWiseTimeSlots.length === 0) {
+                        throw new Error('Weekly recurrence requires dayWiseTimeSlots with specific slots for each day');
                   }
-                  for (const day of value.weeklyDays) {
-                        if (!VALID_DAYS.includes(day.toLowerCase())) {
-                              throw new Error(`Invalid day: ${day}. Must be one of: ${VALID_DAYS.join(', ')}`);
+                  for (const detail of value.dayWiseTimeSlots) {
+                        if (!VALID_DAYS.includes(detail.day?.toLowerCase())) {
+                              throw new Error(`Invalid day: ${detail.day}. Must be one of: ${VALID_DAYS.join(', ')}`);
                         }
+                        validateTimeSlots(detail.timeSlots);
                   }
-                  if (!value.weeklyTimeSlots || !Array.isArray(value.weeklyTimeSlots) || value.weeklyTimeSlots.length === 0) {
-                        throw new Error('Weekly recurrence requires at least one time slot');
-                  }
-                  validateTimeSlots(value.weeklyTimeSlots);
                   break;
 
             case 'monthly':
-                  if (!value.monthlyDays || !Array.isArray(value.monthlyDays) || value.monthlyDays.length === 0) {
-                        throw new Error('Monthly recurrence requires at least one day of month');
-                  }
-                  for (const day of value.monthlyDays) {
-                        if (typeof day !== 'number' || day < 1 || day > 31) {
-                              throw new Error(`Invalid day of month: ${day}. Must be between 1 and 31`);
+                  // Support new format: monthlyDayWiseSlots
+                  if (value.monthlyDayWiseSlots && Array.isArray(value.monthlyDayWiseSlots) && value.monthlyDayWiseSlots.length > 0) {
+                        for (const daySlot of value.monthlyDayWiseSlots) {
+                              if (typeof daySlot.day !== 'number' || daySlot.day < 1 || daySlot.day > 31) {
+                                    throw new Error(`Invalid day of month: ${daySlot.day}. Must be between 1 and 31`);
+                              }
+                              if (!daySlot.timeSlots || !Array.isArray(daySlot.timeSlots) || daySlot.timeSlots.length === 0) {
+                                    throw new Error(`Day ${daySlot.day}: At least one time slot is required`);
+                              }
+                              validateTimeSlots(daySlot.timeSlots);
                         }
+                  } else {
+                        // Fallback to legacy format: monthlyDays with monthlyTimeSlots
+                        if (!value.monthlyDays || !Array.isArray(value.monthlyDays) || value.monthlyDays.length === 0) {
+                              throw new Error('Monthly recurrence requires either monthlyDayWiseSlots or monthlyDays');
+                        }
+                        for (const day of value.monthlyDays) {
+                              if (typeof day !== 'number' || day < 1 || day > 31) {
+                                    throw new Error(`Invalid day of month: ${day}. Must be between 1 and 31`);
+                              }
+                        }
+                        if (!value.monthlyTimeSlots || !Array.isArray(value.monthlyTimeSlots) || value.monthlyTimeSlots.length === 0) {
+                              throw new Error('Monthly recurrence requires monthlyTimeSlots that apply to all selected days');
+                        }
+                        validateTimeSlots(value.monthlyTimeSlots);
                   }
-                  if (!value.monthlyTimeSlots || !Array.isArray(value.monthlyTimeSlots) || value.monthlyTimeSlots.length === 0) {
-                        throw new Error('Monthly recurrence requires at least one time slot');
+                  break;
+
+            case 'yearly':
+                  if (value.yearlyMonth === undefined || value.yearlyMonth < 0 || value.yearlyMonth > 11) {
+                        throw new Error('Yearly recurrence requires a valid month (0-11)');
                   }
-                  validateTimeSlots(value.monthlyTimeSlots);
+                  if (value.yearlyDay === undefined || value.yearlyDay < 1 || value.yearlyDay > 31) {
+                        throw new Error('Yearly recurrence requires a valid day (1-31)');
+                  }
+                  if (!value.yearlyTimeSlots || !Array.isArray(value.yearlyTimeSlots) || value.yearlyTimeSlots.length === 0) {
+                        throw new Error('Yearly recurrence requires at least one time slot');
+                  }
+                  validateTimeSlots(value.yearlyTimeSlots);
                   break;
 
             case 'custom':
-                  if (!value.customDays || !Array.isArray(value.customDays) || value.customDays.length === 0) {
-                        throw new Error('Custom recurrence requires at least one day');
+                  if (!value.dayWiseTimeSlots || !Array.isArray(value.dayWiseTimeSlots) || value.dayWiseTimeSlots.length === 0) {
+                        throw new Error('Custom recurrence requires dayWiseTimeSlots with specific slots for each day');
                   }
-                  for (const day of value.customDays) {
-                        if (!VALID_DAYS.includes(day.toLowerCase())) {
-                              throw new Error(`Invalid day: ${day}. Must be one of: ${VALID_DAYS.join(', ')}`);
+                  for (const detail of value.dayWiseTimeSlots) {
+                        if (!VALID_DAYS.includes(detail.day?.toLowerCase())) {
+                              throw new Error(`Invalid day: ${detail.day}. Must be one of: ${VALID_DAYS.join(', ')}`);
                         }
+                        validateTimeSlots(detail.timeSlots);
                   }
                   if (value.customInterval !== undefined) {
                         if (typeof value.customInterval !== 'number' || value.customInterval < 1 || value.customInterval > 52) {
                               throw new Error('Custom interval must be between 1 and 52 weeks');
                         }
                   }
-                  if (!value.customTimeSlots || !Array.isArray(value.customTimeSlots) || value.customTimeSlots.length === 0) {
-                        throw new Error('Custom recurrence requires at least one time slot');
-                  }
-                  validateTimeSlots(value.customTimeSlots);
                   break;
 
             case 'none':
@@ -193,6 +214,11 @@ export const validateCreateClass = [
             .optional()
             .isInt({ min: 1, max: 1000 })
             .withMessage('Capacity must be between 1 and 1000'),
+
+      body('availability')
+            .optional()
+            .isBoolean()
+            .withMessage('availability must be a boolean'),
 
       body('isRecurring')
             .isBoolean()
@@ -277,6 +303,11 @@ export const validateUpdateClass = [
             .isInt({ min: 1, max: 1000 })
             .withMessage('Capacity must be between 1 and 1000'),
 
+      body('availability')
+            .optional()
+            .isBoolean()
+            .withMessage('availability must be a boolean'),
+
       body('status')
             .optional()
             .isIn(['active', 'cancelled', 'completed'])
@@ -318,6 +349,17 @@ export const validateGetClasses = [
             .optional()
             .isBoolean()
             .withMessage('isRecurring must be a boolean'),
+
+      query('availability')
+            .optional()
+            .isBoolean()
+            .withMessage('availability must be a boolean'),
+
+      query('search')
+            .optional()
+            .trim()
+            .isLength({ min: 1, max: 100 })
+            .withMessage('Search query must be between 1 and 100 characters'),
 
       query('page')
             .optional()
@@ -377,6 +419,23 @@ export const validateUpdateInstanceStatus = [
             .withMessage('Status is required')
             .isIn(['scheduled', 'cancelled', 'completed'])
             .withMessage('Status must be scheduled, cancelled, or completed'),
+
+      handleValidationErrors,
+];
+
+/**
+ * Validate Update Class Status
+ */
+export const validateUpdateClassStatus = [
+      param('id')
+            .isMongoId()
+            .withMessage('Invalid class ID'),
+
+      body('status')
+            .notEmpty()
+            .withMessage('Status is required')
+            .isIn(['active', 'cancelled', 'completed'])
+            .withMessage('Status must be active, cancelled, or completed'),
 
       handleValidationErrors,
 ];

@@ -51,6 +51,21 @@ class CalanderService {
                   return true;
             };
 
+            // Helper to get time slots for a specific day from dayWiseTimeSlots
+            const getTimeSlotsForDate = (date: Date): ITimeSlot[] => {
+                  const dayName = Object.keys(DAY_MAP).find(
+                        key => DAY_MAP[key as DayOfWeek] === date.getDay()
+                  ) as DayOfWeek;
+
+                  if (recurrence.dayWiseTimeSlots && recurrence.dayWiseTimeSlots.length > 0) {
+                        const dayConfig = recurrence.dayWiseTimeSlots.find(
+                              d => d.day.toLowerCase() === dayName.toLowerCase()
+                        );
+                        return dayConfig ? dayConfig.timeSlots : [];
+                  }
+                  return [];
+            };
+
             // Helper to create instance objects for a date with time slots
             const createInstancesForDate = (date: Date, timeSlots: ITimeSlot[]) => {
                   for (const slot of timeSlots) {
@@ -68,58 +83,69 @@ class CalanderService {
 
             switch (recurrence.type) {
                   case 'daily': {
-                        const timeSlots = recurrence.dailyTimeSlots || [];
+                        const slots = recurrence.dailyTimeSlots || [];
                         while (isWithinBounds(currentDate)) {
-                              createInstancesForDate(currentDate, timeSlots);
+                              createInstancesForDate(currentDate, slots);
                               currentDate = addDays(currentDate, 1);
                         }
                         break;
                   }
 
                   case 'weekly': {
-                        const weeklyDays = recurrence.weeklyDays || [];
-                        const timeSlots = recurrence.weeklyTimeSlots || [];
-                        const targetDays = weeklyDays.map(d => DAY_MAP[d.toLowerCase() as DayOfWeek]);
-
-                        // Find the first occurrence
-                        while (!targetDays.includes(currentDate.getDay())) {
-                              currentDate = addDays(currentDate, 1);
-                        }
+                        const targetDays = (recurrence.dayWiseTimeSlots || []).map(d => DAY_MAP[d.day.toLowerCase() as DayOfWeek]);
+                        if (targetDays.length === 0) break;
 
                         while (isWithinBounds(currentDate)) {
-                              const dayOfWeek = currentDate.getDay();
-                              if (targetDays.includes(dayOfWeek)) {
-                                    createInstancesForDate(currentDate, timeSlots);
+                              if (targetDays.includes(currentDate.getDay())) {
+                                    const slots = getTimeSlotsForDate(currentDate);
+                                    if (slots.length > 0) {
+                                          createInstancesForDate(currentDate, slots);
+                                    }
                               }
                               currentDate = addDays(currentDate, 1);
-                              // If we've gone through all days, skip to next week
-                              if (currentDate.getDay() === 0 && !targetDays.includes(0)) {
-                                    // Reset to find next target day
-                              }
                         }
                         break;
                   }
 
                   case 'monthly': {
-                        const monthlyDays = recurrence.monthlyDays || [];
-                        const timeSlots = recurrence.monthlyTimeSlots || [];
+                        // Support both legacy monthlyDays/monthlyTimeSlots and new monthlyDayWiseSlots
+                        const monthlyDayWiseSlots = recurrence.monthlyDayWiseSlots || [];
+                        const legacyMonthlyDays = recurrence.monthlyDays || [];
+                        const legacySlots = recurrence.monthlyTimeSlots || [];
 
                         // Start from the first month
                         currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
 
                         while (isWithinBounds(currentDate)) {
-                              for (const dayOfMonth of monthlyDays) {
-                                    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayOfMonth);
+                              // Handle new format: monthlyDayWiseSlots
+                              if (monthlyDayWiseSlots.length > 0) {
+                                    for (const daySlot of monthlyDayWiseSlots) {
+                                          const dayOfMonth = daySlot.day;
+                                          const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayOfMonth);
 
-                                    // Check if the day exists in this month (e.g., Feb 31 doesn't exist)
-                                    if (targetDate.getMonth() !== currentDate.getMonth()) continue;
+                                          // Check if the day exists in this month
+                                          if (targetDate.getMonth() !== currentDate.getMonth()) continue;
 
-                                    // Skip if before start date
-                                    if (targetDate < startDate) continue;
+                                          // Skip if before start date
+                                          if (targetDate < startDate) continue;
+                                          if (!isWithinBounds(targetDate)) break;
 
-                                    if (!isWithinBounds(targetDate)) break;
+                                          createInstancesForDate(targetDate, daySlot.timeSlots);
+                                    }
+                              } else if (legacyMonthlyDays.length > 0) {
+                                    // Handle legacy format: monthlyDays with monthlyTimeSlots
+                                    for (const dayOfMonth of legacyMonthlyDays) {
+                                          const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayOfMonth);
 
-                                    createInstancesForDate(targetDate, timeSlots);
+                                          // Check if the day exists in this month
+                                          if (targetDate.getMonth() !== currentDate.getMonth()) continue;
+
+                                          // Skip if before start date
+                                          if (targetDate < startDate) continue;
+                                          if (!isWithinBounds(targetDate)) break;
+
+                                          createInstancesForDate(targetDate, legacySlots);
+                                    }
                               }
                               // Move to next month
                               currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
@@ -127,11 +153,28 @@ class CalanderService {
                         break;
                   }
 
+                  case 'yearly': {
+                        const month = recurrence.yearlyMonth || 0;
+                        const day = recurrence.yearlyDay || 1;
+                        const slots = recurrence.yearlyTimeSlots || [];
+
+                        currentDate = new Date(startDate.getFullYear(), month, day);
+                        if (currentDate < startDate) {
+                              currentDate.setFullYear(currentDate.getFullYear() + 1);
+                        }
+
+                        while (isWithinBounds(currentDate)) {
+                              createInstancesForDate(currentDate, slots);
+                              // Move to next year
+                              currentDate = new Date(currentDate.getFullYear() + 1, month, day);
+                        }
+                        break;
+                  }
+
                   case 'custom': {
-                        const customDays = recurrence.customDays || [];
-                        const timeSlots = recurrence.customTimeSlots || [];
                         const interval = recurrence.customInterval || 1;
-                        const targetDays = customDays.map(d => DAY_MAP[d.toLowerCase() as DayOfWeek]);
+                        const targetDays = (recurrence.dayWiseTimeSlots || []).map(d => DAY_MAP[d.day.toLowerCase() as DayOfWeek]);
+                        if (targetDays.length === 0) break;
 
                         let weekCount = 0;
                         let weekStart = new Date(startDate);
@@ -146,7 +189,10 @@ class CalanderService {
                                           if (!isWithinBounds(checkDate)) break;
 
                                           if (targetDays.includes(checkDate.getDay())) {
-                                                createInstancesForDate(checkDate, timeSlots);
+                                                const slots = getTimeSlotsForDate(checkDate);
+                                                if (slots.length > 0) {
+                                                      createInstancesForDate(checkDate, slots);
+                                                }
                                           }
                                     }
                               }
@@ -199,7 +245,7 @@ class CalanderService {
             classes: IClass[];
             pagination: IPagination;
       }> {
-            const { startDate, endDate, status, isRecurring, page = 1, limit = 10 } = filters;
+            const { startDate, endDate, status, isRecurring, availability, search, page = 1, limit = 10 } = filters;
             const skip = (page - 1) * limit;
 
             const query: any = {};
@@ -212,23 +258,50 @@ class CalanderService {
                   query.isRecurring = isRecurring;
             }
 
-            if (startDate && endDate) {
+            if (availability !== undefined) {
+                  query.availability = availability;
+            }
+
+            // Search by title or instructor (case-insensitive partial match)
+            if (search) {
+                  const searchRegex = new RegExp(search, 'i');
                   query.$or = [
-                        // One-time classes within date range
-                        {
-                              isRecurring: false,
-                              scheduledDate: { $gte: startDate, $lte: endDate },
-                        },
-                        // Recurring classes that overlap with date range
-                        {
-                              isRecurring: true,
-                              'recurrence.startDate': { $lte: endDate },
-                              $or: [
-                                    { 'recurrence.endDate': { $gte: startDate } },
-                                    { 'recurrence.endDate': { $exists: false } },
-                              ],
-                        },
+                        { title: searchRegex },
+                        { instructor: searchRegex },
                   ];
+            }
+
+            // Date range filter (applied with $and if search is present)
+            if (startDate && endDate) {
+                  const dateQuery = {
+                        $or: [
+                              // One-time classes within date range
+                              {
+                                    isRecurring: false,
+                                    scheduledDate: { $gte: startDate, $lte: endDate },
+                              },
+                              // Recurring classes that overlap with date range
+                              {
+                                    isRecurring: true,
+                                    'recurrence.startDate': { $lte: endDate },
+                                    $or: [
+                                          { 'recurrence.endDate': { $gte: startDate } },
+                                          { 'recurrence.endDate': { $exists: false } },
+                                    ],
+                              },
+                        ],
+                  };
+
+                  // If there's already an $or from search, use $and to combine them
+                  if (query.$or) {
+                        query.$and = [
+                              { $or: query.$or },
+                              dateQuery,
+                        ];
+                        delete query.$or;
+                  } else {
+                        query.$or = dateQuery.$or;
+                  }
             }
 
             const [total, classes] = await Promise.all([
@@ -267,6 +340,37 @@ class CalanderService {
                   { $set: updateData },
                   { new: true, runValidators: true }
             ).lean();
+
+            return updatedClass;
+      }
+
+      /**
+       * Update class status (active, cancelled, completed)
+       */
+      async updateClassStatus(
+            id: string,
+            status: 'active' | 'cancelled' | 'completed'
+      ): Promise<IClass | null> {
+            const updatedClass = await Class.findByIdAndUpdate(
+                  id,
+                  { status },
+                  { new: true }
+            ).lean();
+
+            if (!updatedClass) return null;
+
+            // If class is cancelled or completed, update all future scheduled instances
+            if (status === 'cancelled' || status === 'completed') {
+                  const instanceStatus = status === 'cancelled' ? 'cancelled' : 'completed';
+                  await ClassInstance.updateMany(
+                        {
+                              classId: id,
+                              scheduledDate: { $gte: new Date() },
+                              status: 'scheduled',
+                        },
+                        { status: instanceStatus }
+                  );
+            }
 
             return updatedClass;
       }

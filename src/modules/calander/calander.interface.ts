@@ -7,25 +7,48 @@ export interface ITimeSlot {
 }
 
 // Recurrence pattern types
-export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
+export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom';
 
 // Days of the week
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
+// Day-wise time slots mapping
+export interface IDayWiseTimeSlot {
+      day: DayOfWeek;
+      timeSlots: ITimeSlot[];
+}
+
+// Monthly day-wise time slots (day of month with specific time slots)
+export interface IMonthlyDayWiseSlot {
+      day: number; // Day of month (1-31)
+      timeSlots: ITimeSlot[];
+}
 
 // Recurrence configuration
 export interface IRecurrenceConfig {
       type: RecurrenceType;
 
-      // For daily recurrence
+      // New flexible format: Map days to multiple time slots
+      dayWiseTimeSlots?: IDayWiseTimeSlot[];
+
+      // For daily recurrence (legacy/simple)
       dailyTimeSlots?: ITimeSlot[];
 
-      // For weekly recurrence
+      // For weekly recurrence (legacy)
       weeklyDays?: DayOfWeek[];
       weeklyTimeSlots?: ITimeSlot[];
 
-      // For monthly recurrence
+      // For monthly recurrence (legacy - single time slot for all days)
       monthlyDays?: number[]; // Days of month (1-31)
       monthlyTimeSlots?: ITimeSlot[];
+
+      // For monthly recurrence (new - day-specific time slots)
+      monthlyDayWiseSlots?: IMonthlyDayWiseSlot[];
+
+      // For yearly recurrence
+      yearlyMonth?: number; // 0-11
+      yearlyDay?: number;   // 1-31
+      yearlyTimeSlots?: ITimeSlot[];
 
       // For custom recurrence
       customDays?: DayOfWeek[];
@@ -46,6 +69,7 @@ export interface IClass extends Document {
       instructor?: string;
       location?: string;
       capacity?: number;
+      availability?: boolean; // New field
 
       // Scheduling
       isRecurring: boolean;
@@ -111,6 +135,8 @@ export interface IClassQueryFilters {
       endDate?: Date;
       status?: string;
       isRecurring?: boolean;
+      availability?: boolean;
+      search?: string; // Search by title or instructor
       page?: number;
       limit?: number;
 }

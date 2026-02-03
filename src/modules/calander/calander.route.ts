@@ -7,6 +7,7 @@ import {
       validateGetClasses,
       validateGetInstances,
       validateUpdateInstanceStatus,
+      validateUpdateClassStatus,
 } from './calander.validator';
 
 const router: Router = Router();
@@ -17,7 +18,13 @@ const router: Router = Router();
 
 /**
  * @route   GET /api/v1/calander
- * @desc    Get all classes with pagination and filters
+ * @desc    Get all classes with pagination, filters, and search
+ * @query   search - Search by title or instructor name
+ * @query   availability - Filter by availability (true/false)
+ * @query   status - Filter by status (active, cancelled, completed)
+ * @query   isRecurring - Filter by recurring status
+ * @query   startDate, endDate - Date range filter
+ * @query   page, limit - Pagination
  * @access  Public
  */
 router.get('/', validateGetClasses, CalanderController.getAllClasses);
@@ -67,6 +74,14 @@ router.get('/:id', validateClassId, CalanderController.getClassById);
  * @access  Public
  */
 router.put('/:id', validateUpdateClass, CalanderController.updateClass);
+
+/**
+ * @route   PATCH /api/v1/calander/:id/status
+ * @desc    Update class status (active, cancelled, completed)
+ * @body    { status: 'active' | 'cancelled' | 'completed' }
+ * @access  Public
+ */
+router.patch('/:id/status', validateUpdateClassStatus, CalanderController.updateClassStatus);
 
 /**
  * @route   DELETE /api/v1/calander/:id
