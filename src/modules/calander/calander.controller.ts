@@ -417,6 +417,26 @@ class CalanderController {
                   res.status(200).json(response);
             }
       );
+      /**
+       * Update all instances of a class
+       * PUT /api/v1/calander/:id/instances/all
+       */
+      updateAllInstances = asyncHandler(
+            async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+                  const { id } = req.params;
+                  const updateData = req.body;
+
+                  const modifiedCount = await CalanderService.updateAllInstances(id, updateData);
+
+                  const response: ISuccessResponse<{ modifiedCount: number }> = {
+                        title: 'All Instances Updated',
+                        message: `${modifiedCount} instances updated successfully`,
+                        data: { modifiedCount },
+                  };
+
+                  res.status(200).json(response);
+            }
+      );
 }
 
 export default new CalanderController();

@@ -448,6 +448,7 @@ export const validateUpdateClassStatus = [
  */
 export const validateUpdateInstance = [
       param('instanceId')
+            .optional() // Optional because we might reuse this for bulk updates that don't have instanceId param
             .isMongoId()
             .withMessage('Invalid instance ID'),
 

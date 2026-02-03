@@ -6,7 +6,6 @@ import {
   securityMiddleware,
   helmetMiddleware,
   mongoSanitizeMiddleware,
-  rateLimiter,
 } from './middleware/middleware';
 import { globalErrorHandler, notFoundHandler } from './global/errorHandler';
 import { connectDatabase } from './databases/db';
@@ -32,8 +31,8 @@ export const initializeApp = async (): Promise<Express> => {
   // CORS
   app.use(corsMiddleware);
 
-  // Rate limiting
-  app.use(rateLimiter);
+  // Rate limiting (Disabled)
+  // app.use(rateLimiter);
 
   // Request logging
   app.use(requestLogger);

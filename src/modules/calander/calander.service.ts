@@ -518,10 +518,25 @@ class CalanderService {
             startTime: string | undefined,
             updateData: Partial<IClassInstance>
       ): Promise<(IClassInstance & { classId?: any }) | null> {
-            // Robust date query: cover the entire day
-            const targetDate = new Date(scheduledDate);
-            const startOfDay = new Date(targetDate); startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date(targetDate); endOfDay.setHours(23, 59, 59, 999);
+            // Robust date query: cover the entire day, handling Local vs UTC mismatch
+            // We parse manually to ensure we construct a Local Midnight date, matching how instances are generated
+            const parts = scheduledDate.split('-');
+            let startOfDay: Date, endOfDay: Date;
+
+            if (parts.length === 3) {
+                  // "YYYY-MM-DD" format - Construct Local Midnight
+                  const year = parseInt(parts[0], 10);
+                  const month = parseInt(parts[1], 10) - 1;
+                  const day = parseInt(parts[2], 10);
+                  startOfDay = new Date(year, month, day, 0, 0, 0, 0);
+                  endOfDay = new Date(year, month, day, 23, 59, 59, 999);
+            } else {
+                  // Fallback for other formats (e.g. ISO string with time)
+                  const targetDate = new Date(scheduledDate);
+                  if (isNaN(targetDate.getTime())) return null;
+                  startOfDay = new Date(targetDate); startOfDay.setHours(0, 0, 0, 0);
+                  endOfDay = new Date(targetDate); endOfDay.setHours(23, 59, 59, 999);
+            }
 
             const query: any = {
                   classId,
@@ -557,14 +572,14 @@ class CalanderService {
             // Get one-time classes
             const oneTimeClasses = await Class.find({
                   isRecurring: false,
-                  status: 'active',
+                  // status: 'active', // REMOVED: Show all statuses
                   scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
             }).lean();
 
             // Get recurring class instances
             const instances = await ClassInstance.find({
                   scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
-                  status: { $ne: 'cancelled' },
+                  // status: { $ne: 'cancelled' }, // REMOVED: Show all statuses
             })
                   .populate('classId', 'title description instructor location capacity status')
                   .lean();
@@ -624,12 +639,23 @@ class CalanderService {
 
             const today = normalizeDate(new Date());
 
-            // Delete existing future instances
+            // Delete existing future instances that are 'scheduled' AND unmodified
             await ClassInstance.deleteMany({
                   classId,
                   scheduledDate: { $gte: today },
                   status: 'scheduled',
+                  $expr: { $eq: ['$updatedAt', '$createdAt'] }
             });
+
+            // Fetch existing instances that are NOT 'scheduled' OR have been modified
+            const existingExceptions = await ClassInstance.find({
+                  classId,
+                  scheduledDate: { $gte: today },
+                  $or: [
+                        { status: { $ne: 'scheduled' } },
+                        { $expr: { $gt: ['$updatedAt', '$createdAt'] } }
+                  ]
+            }).lean();
 
             // Regenerate all instances based on original recurrence config without saving
             const recurrence = classDoc.recurrence;
@@ -646,13 +672,37 @@ class CalanderService {
                   inst.scheduledDate && new Date(inst.scheduledDate) >= today
             );
 
+            // Filter out instances that conflict with existing exceptions (same date and same start time)
+            const validInstances = futureInstances.filter(newInst => {
+                  const isConflict = existingExceptions.some(ex =>
+                        new Date(ex.scheduledDate).getTime() === new Date(newInst.scheduledDate!).getTime() &&
+                        ex.startTime === newInst.startTime
+                  );
+                  return !isConflict;
+            });
+
             // Insert validity filtered instances
-            if (futureInstances.length > 0) {
-                  const savedInstances = await ClassInstance.insertMany(futureInstances);
+            if (validInstances.length > 0) {
+                  const savedInstances = await ClassInstance.insertMany(validInstances);
                   return savedInstances as unknown as IClassInstance[];
             }
 
             return [];
+      }
+
+      /**
+       * Update all instances of a specific class
+       */
+      async updateAllInstances(
+            classId: string,
+            updateData: Partial<IClassInstance>
+      ): Promise<number> {
+            const result = await ClassInstance.updateMany(
+                  { classId },
+                  { $set: updateData },
+                  { runValidators: true }
+            );
+            return result.modifiedCount;
       }
 }
 

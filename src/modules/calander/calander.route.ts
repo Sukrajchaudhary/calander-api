@@ -131,4 +131,15 @@ router.get('/:id/instances', validateClassId, CalanderController.getInstancesByC
  */
 router.post('/:id/regenerate', validateClassId, CalanderController.regenerateInstances);
 
+/**
+ * @route   PUT /api/v1/calander/:id/instances/all
+ * @desc    Update ALL instances of a class
+ * @access  Public
+ */
+router.put(
+      '/:id/instances/all',
+      validateUpdateInstance, // Re-use validator as it checks body fields
+      CalanderController.updateAllInstances
+);
+
 export default router;
