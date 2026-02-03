@@ -107,9 +107,9 @@ class CalanderController {
       updateClass = asyncHandler(
             async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
                   const { id } = req.params;
-                  const updatedClass = await CalanderService.updateClass(id, req.body);
+                  const result = await CalanderService.updateClass(id, req.body);
 
-                  if (!updatedClass) {
+                  if (!result) {
                         const errorResponse: IErrorResponse = {
                               title: 'Not Found',
                               message: 'Class not found',
@@ -118,10 +118,20 @@ class CalanderController {
                         return;
                   }
 
-                  const response: ISuccessResponse<IClass> = {
+                  const response: ISuccessResponse<{
+                        class: IClass;
+                        instances?: IClassInstance[];
+                        instanceCount?: number;
+                  }> = {
                         title: 'Class Updated',
-                        message: 'Class updated successfully',
-                        data: updatedClass,
+                        message: result.instances
+                              ? `Class updated successfully with ${result.instances.length} regenerated instances`
+                              : 'Class updated successfully',
+                        data: {
+                              class: result.class,
+                              instances: result.instances?.slice(0, 10),
+                              instanceCount: result.instances?.length,
+                        },
                   };
 
                   res.status(200).json(response);
@@ -260,6 +270,81 @@ class CalanderController {
                         data: {
                               instance: updatedInstance,
                               class: updatedInstance.classId,
+                        },
+                  };
+
+                  res.status(200).json(response);
+            }
+      );
+
+      /**
+       * Update a specific instance
+       * PUT /api/v1/calander/instances/:instanceId
+       */
+      updateInstance = asyncHandler(
+            async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+                  const { instanceId } = req.params;
+                  const updateData = req.body;
+
+                  const updatedInstance = await CalanderService.updateInstance(instanceId, updateData);
+
+                  if (!updatedInstance) {
+                        const errorResponse: IErrorResponse = {
+                              title: 'Not Found',
+                              message: 'Instance not found',
+                        };
+                        res.status(404).json(errorResponse);
+                        return;
+                  }
+
+                  const response: ISuccessResponse<{
+                        instance: IClassInstance & { classId?: any };
+                  }> = {
+                        title: 'Instance Updated',
+                        message: 'Instance updated successfully',
+                        data: {
+                              instance: updatedInstance,
+                        },
+                  };
+
+                  res.status(200).json(response);
+            }
+      );
+
+      /**
+       * Update a specific instance by details
+       * PUT /api/v1/calander/:id/instances/specific
+       */
+      updateInstanceByDetails = asyncHandler(
+            async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+                  const { id } = req.params;
+                  const scheduledDate = req.query.scheduledDate as string;
+                  const startTime = req.query.startTime as string | undefined;
+                  const updateData = req.body;
+
+                  const updatedInstance = await CalanderService.updateInstanceByDetails(
+                        id,
+                        scheduledDate,
+                        startTime,
+                        updateData
+                  );
+
+                  if (!updatedInstance) {
+                        const errorResponse: IErrorResponse = {
+                              title: 'Not Found',
+                              message: 'Instance not found matching criteria',
+                        };
+                        res.status(404).json(errorResponse);
+                        return;
+                  }
+
+                  const response: ISuccessResponse<{
+                        instance: IClassInstance & { classId?: any };
+                  }> = {
+                        title: 'Instance Updated',
+                        message: 'Instance updated successfully',
+                        data: {
+                              instance: updatedInstance,
                         },
                   };
 

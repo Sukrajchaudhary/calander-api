@@ -8,6 +8,8 @@ import {
       validateGetInstances,
       validateUpdateInstanceStatus,
       validateUpdateClassStatus,
+      validateUpdateInstance,
+      validateUpdateInstanceByDetails,
 } from './calander.validator';
 
 const router: Router = Router();
@@ -59,6 +61,31 @@ router.patch(
       '/instances/:instanceId',
       validateUpdateInstanceStatus,
       CalanderController.updateInstanceStatus
+);
+
+/**
+ * @route   PUT /api/v1/calander/instances/:instanceId
+ * @desc    Update a specific instance details
+ * @access  Public
+ */
+router.put(
+      '/instances/:instanceId',
+      validateUpdateInstance,
+      CalanderController.updateInstance
+);
+
+/**
+ * @route   PUT /api/v1/calander/:id/instances/specific
+ * @desc    Update a specific class instance identified by date (and time)
+ * @param   id - Class ID
+ * @query   scheduledDate - Date of instance
+ * @query   startTime - (Optional) Start time of instance
+ * @access  Public
+ */
+router.put(
+      '/:id/instances/specific',
+      validateUpdateInstanceByDetails,
+      CalanderController.updateInstanceByDetails
 );
 
 /**

@@ -60,6 +60,9 @@ const validateTimeSlots = (value: any[]): boolean => {
             if (startMinutes >= endMinutes) {
                   throw new Error(`Time slot ${i + 1}: Start time must be before end time`);
             }
+            if (slot.status && !['scheduled', 'cancelled', 'completed'].includes(slot.status)) {
+                  throw new Error(`Time slot ${i + 1}: Invalid status. Must be scheduled, cancelled, or completed`);
+            }
       }
       return true;
 };
@@ -436,6 +439,79 @@ export const validateUpdateClassStatus = [
             .withMessage('Status is required')
             .isIn(['active', 'cancelled', 'completed'])
             .withMessage('Status must be active, cancelled, or completed'),
+
+      handleValidationErrors,
+];
+
+/**
+ * Validate Update Instance (Generic)
+ */
+export const validateUpdateInstance = [
+      param('instanceId')
+            .isMongoId()
+            .withMessage('Invalid instance ID'),
+
+      body('status')
+            .optional()
+            .isIn(['scheduled', 'cancelled', 'completed'])
+            .withMessage('Status must be scheduled, cancelled, or completed'),
+
+      body('startTime')
+            .optional()
+            .matches(TIME_FORMAT)
+            .withMessage('Start time must be in HH:mm format'),
+
+      body('endTime')
+            .optional()
+            .matches(TIME_FORMAT)
+            .withMessage('End time must be in HH:mm format'),
+
+      body('scheduledDate')
+            .optional()
+            .isISO8601()
+            .withMessage('Invalid scheduled date format'),
+
+      handleValidationErrors,
+];
+
+/**
+ * Validate Update Instance By Details (Identify by ClassID + Date)
+ */
+export const validateUpdateInstanceByDetails = [
+      param('id')
+            .isMongoId()
+            .withMessage('Invalid class ID'),
+
+      query('scheduledDate')
+            .notEmpty()
+            .withMessage('scheduledDate query param is required to identify the instance')
+            .isISO8601()
+            .withMessage('Invalid scheduledDate format'),
+
+      query('startTime')
+            .optional()
+            .matches(TIME_FORMAT)
+            .withMessage('startTime query param must be in HH:mm format'),
+
+      body('status')
+            .optional()
+            .isIn(['scheduled', 'cancelled', 'completed'])
+            .withMessage('Status must be scheduled, cancelled, or completed'),
+
+      body('startTime')
+            .optional()
+            .matches(TIME_FORMAT)
+            .withMessage('Start time must be in HH:mm format'),
+
+      body('endTime')
+            .optional()
+            .matches(TIME_FORMAT)
+            .withMessage('End time must be in HH:mm format'),
+
+      body('scheduledDate')
+            .optional()
+            .isISO8601()
+            .withMessage('Invalid scheduled date format'),
 
       handleValidationErrors,
 ];

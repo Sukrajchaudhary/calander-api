@@ -4,6 +4,7 @@ import { Document, Types } from 'mongoose';
 export interface ITimeSlot {
       startTime: string; // HH:mm format (e.g., "09:00")
       endTime: string;   // HH:mm format (e.g., "10:00")
+      status?: 'scheduled' | 'cancelled' | 'completed'; // Optional status for specific slots
 }
 
 // Recurrence pattern types

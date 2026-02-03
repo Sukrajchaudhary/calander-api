@@ -13,6 +13,11 @@ const TimeSlotSchema = new Schema({
             required: true,
             match: /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
       },
+      status: {
+            type: String,
+            enum: ['scheduled', 'cancelled', 'completed'],
+            default: 'scheduled',
+      },
 }, { _id: false });
 
 // Day Wise Time Slot Schema
@@ -150,7 +155,6 @@ const ClassSchema = new Schema<IClass>(
       },
       {
             timestamps: true,
-            versionKey: false,
       }
 );
 
@@ -195,7 +199,6 @@ const ClassInstanceSchema = new Schema<IClassInstance>(
       },
       {
             timestamps: true,
-            versionKey: false,
       }
 );
 

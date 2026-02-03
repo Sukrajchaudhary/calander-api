@@ -20,6 +20,13 @@ const DAY_MAP: Record<DayOfWeek, number> = {
       saturday: 6,
 };
 
+// Helper to normalize date to start of day (00:00:00.000) to avoid time mismatches
+const normalizeDate = (date: Date | string): Date => {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+};
+
 class CalanderService {
       /**
        * Generate class instances for a recurring class
@@ -27,11 +34,12 @@ class CalanderService {
       private async generateInstances(
             classId: string,
             recurrence: IRecurrenceConfig,
-            maxInstances: number = 365
-      ): Promise<IClassInstance[]> {
+            maxInstances: number = 365,
+            save: boolean = true
+      ): Promise<IClassInstance[] | Partial<IClassInstance>[]> {
             const instances: Partial<IClassInstance>[] = [];
-            const startDate = new Date(recurrence.startDate);
-            const endDate = recurrence.endDate ? new Date(recurrence.endDate) : null;
+            const startDate = normalizeDate(recurrence.startDate);
+            const endDate = recurrence.endDate ? normalizeDate(recurrence.endDate) : null;
             const maxOccurrences = recurrence.occurrences || maxInstances;
 
             let currentDate = new Date(startDate);
@@ -75,7 +83,7 @@ class CalanderService {
                               scheduledDate: new Date(date),
                               startTime: slot.startTime,
                               endTime: slot.endTime,
-                              status: 'scheduled',
+                              status: slot.status || 'scheduled',
                         });
                         occurrenceCount++;
                   }
@@ -206,10 +214,14 @@ class CalanderService {
                   }
             }
 
-            // Bulk insert instances if any were generated
-            if (instances.length > 0) {
+            // Bulk insert instances if any were generated and save is true
+            if (instances.length > 0 && save) {
                   const savedInstances = await ClassInstance.insertMany(instances);
                   return savedInstances as unknown as IClassInstance[];
+            }
+
+            if (instances.length > 0 && !save) {
+                  return instances;
             }
 
             return [];
@@ -228,8 +240,10 @@ class CalanderService {
             if (classData.isRecurring && classData.recurrence) {
                   instances = await this.generateInstances(
                         newClass._id.toString(),
-                        classData.recurrence
-                  );
+                        classData.recurrence,
+                        365,
+                        true
+                  ) as IClassInstance[];
             }
 
             return {
@@ -247,6 +261,12 @@ class CalanderService {
       }> {
             const { startDate, endDate, status, isRecurring, availability, search, page = 1, limit = 10 } = filters;
             const skip = (page - 1) * limit;
+
+            // Ensure endDate encompasses the entire day
+            const adjustedEndDate = endDate ? new Date(endDate) : undefined;
+            if (adjustedEndDate) {
+                  adjustedEndDate.setHours(23, 59, 59, 999);
+            }
 
             const query: any = {};
 
@@ -278,12 +298,12 @@ class CalanderService {
                               // One-time classes within date range
                               {
                                     isRecurring: false,
-                                    scheduledDate: { $gte: startDate, $lte: endDate },
+                                    scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
                               },
                               // Recurring classes that overlap with date range
                               {
                                     isRecurring: true,
-                                    'recurrence.startDate': { $lte: endDate },
+                                    'recurrence.startDate': { $lte: adjustedEndDate },
                                     $or: [
                                           { 'recurrence.endDate': { $gte: startDate } },
                                           { 'recurrence.endDate': { $exists: false } },
@@ -334,14 +354,30 @@ class CalanderService {
       /**
        * Update a class
        */
-      async updateClass(id: string, updateData: Partial<IClass>): Promise<IClass | null> {
+      async updateClass(id: string, updateData: Partial<IClass>): Promise<{ class: IClass; instances?: IClassInstance[] } | null> {
             const updatedClass = await Class.findByIdAndUpdate(
                   id,
                   { $set: updateData },
                   { new: true, runValidators: true }
             ).lean();
 
-            return updatedClass;
+            if (!updatedClass) return null;
+
+            let instances: IClassInstance[] | undefined;
+
+            // If the class is recurring and recurrence-related fields are updated, regenerate instances
+            if (
+                  updatedClass.isRecurring &&
+                  updatedClass.status === 'active' &&
+                  (updateData.recurrence || updateData.isRecurring || updateData.startTime || updateData.endTime)
+            ) {
+                  instances = await this.regenerateInstances(id);
+            }
+
+            return {
+                  class: updatedClass,
+                  instances,
+            };
       }
 
       /**
@@ -362,10 +398,11 @@ class CalanderService {
             // If class is cancelled or completed, update all future scheduled instances
             if (status === 'cancelled' || status === 'completed') {
                   const instanceStatus = status === 'cancelled' ? 'cancelled' : 'completed';
+                  const today = normalizeDate(new Date());
                   await ClassInstance.updateMany(
                         {
                               classId: id,
-                              scheduledDate: { $gte: new Date() },
+                              scheduledDate: { $gte: today },
                               status: 'scheduled',
                         },
                         { status: instanceStatus }
@@ -396,8 +433,11 @@ class CalanderService {
             endDate: Date,
             status?: string
       ): Promise<IClassInstance[]> {
+            const adjustedEndDate = new Date(endDate);
+            adjustedEndDate.setHours(23, 59, 59, 999);
+
             const query: any = {
-                  scheduledDate: { $gte: startDate, $lte: endDate },
+                  scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
             };
 
             if (status) {
@@ -444,16 +484,64 @@ class CalanderService {
 
       /**
        * Update a specific instance status
+       * @deprecated Use updateInstance instead
        */
       async updateInstanceStatus(
             instanceId: string,
             status: 'scheduled' | 'cancelled' | 'completed'
       ): Promise<(IClassInstance & { classId?: any }) | null> {
+            return this.updateInstance(instanceId, { status });
+      }
+
+      /**
+       * Update a specific class instance
+       */
+      async updateInstance(
+            instanceId: string,
+            updateData: Partial<IClassInstance>
+      ): Promise<(IClassInstance & { classId?: any }) | null> {
             return ClassInstance.findByIdAndUpdate(
                   instanceId,
-                  { status },
-                  { new: true }
-            ).populate('classId', 'title description instructor location capacity status').lean();
+                  { $set: updateData },
+                  { new: true, runValidators: true }
+            )
+                  .populate('classId', 'title description instructor location capacity status')
+                  .lean();
+      }
+
+      /**
+       * Update class instance by identifying details (ClassId + Date + StartTime)
+       */
+      async updateInstanceByDetails(
+            classId: string,
+            scheduledDate: string,
+            startTime: string | undefined,
+            updateData: Partial<IClassInstance>
+      ): Promise<(IClassInstance & { classId?: any }) | null> {
+            // Robust date query: cover the entire day
+            const targetDate = new Date(scheduledDate);
+            const startOfDay = new Date(targetDate); startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(targetDate); endOfDay.setHours(23, 59, 59, 999);
+
+            const query: any = {
+                  classId,
+                  scheduledDate: {
+                        $gte: startOfDay,
+                        $lte: endOfDay
+                  },
+            };
+
+            if (startTime) {
+                  query.startTime = startTime;
+            }
+
+            return ClassInstance.findOneAndUpdate(
+                  query,
+                  { $set: updateData },
+                  { new: true, runValidators: true }
+            )
+                  .populate('classId', 'title description instructor location capacity status')
+                  .lean();
       }
 
       /**
@@ -463,16 +551,19 @@ class CalanderService {
             startDate: Date,
             endDate: Date
       ): Promise<any[]> {
+            const adjustedEndDate = new Date(endDate);
+            adjustedEndDate.setHours(23, 59, 59, 999);
+
             // Get one-time classes
             const oneTimeClasses = await Class.find({
                   isRecurring: false,
                   status: 'active',
-                  scheduledDate: { $gte: startDate, $lte: endDate },
+                  scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
             }).lean();
 
             // Get recurring class instances
             const instances = await ClassInstance.find({
-                  scheduledDate: { $gte: startDate, $lte: endDate },
+                  scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
                   status: { $ne: 'cancelled' },
             })
                   .populate('classId', 'title description instructor location capacity status')
@@ -531,23 +622,37 @@ class CalanderService {
                   return [];
             }
 
+            const today = normalizeDate(new Date());
+
             // Delete existing future instances
             await ClassInstance.deleteMany({
                   classId,
-                  scheduledDate: { $gte: new Date() },
+                  scheduledDate: { $gte: today },
                   status: 'scheduled',
             });
 
-            // Regenerate instances from today
-            const recurrence = JSON.parse(JSON.stringify(classDoc.recurrence));
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // Regenerate all instances based on original recurrence config without saving
+            const recurrence = classDoc.recurrence;
 
-            if (new Date(recurrence.startDate) < today) {
-                  recurrence.startDate = today;
+            const allInstances = await this.generateInstances(
+                  classId,
+                  recurrence,
+                  365,
+                  false
+            ) as Partial<IClassInstance>[];
+
+            // Filter only future ones (from today)
+            const futureInstances = allInstances.filter(inst =>
+                  inst.scheduledDate && new Date(inst.scheduledDate) >= today
+            );
+
+            // Insert validity filtered instances
+            if (futureInstances.length > 0) {
+                  const savedInstances = await ClassInstance.insertMany(futureInstances);
+                  return savedInstances as unknown as IClassInstance[];
             }
 
-            return this.generateInstances(classId, recurrence);
+            return [];
       }
 }
 

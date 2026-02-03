@@ -1,0 +1,146 @@
+{
+      "info": {
+            "_postman_id": "update-flow-collection-id",
+            "name": "Calendar API - Update Scenarios",
+            "description": "Collection focused on updating Calendar classes: 'Hole/Parent Update' and 'Single Instance Update'.",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+      },
+      "item": [
+            {
+                  "name": "1. Get All Classes (To Find ID)",
+                  "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                              "raw": "{{baseUrl}}/api/v1/calander?page=1&limit=5",
+                              "host": [
+                                    "{{baseUrl}}"
+                              ],
+                              "path": [
+                                    "api",
+                                    "v1",
+                                    "calander"
+                              ],
+                              "query": [
+                                    {
+                                          "key": "page",
+                                          "value": "1"
+                                    },
+                                    {
+                                          "key": "limit",
+                                          "value": "5"
+                                    }
+                              ]
+                        },
+                        "description": "Fetch classes to get an `_id` to use in the update requests below.\nLook for a recurring class for best testing."
+                  },
+                  "response": []
+            },
+            {
+                  "name": "2. Update Parent Class (Hole Update)",
+                  "request": {
+                        "method": "PUT",
+                        "header": [
+                              {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                              }
+                        ],
+                        "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"title\": \"Updated Annual Meeting\",\n  \"description\": \"Updated description and recurrence pattern.\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"11:30\",\n  \"recurrence\": {\n    \"type\": \"weekly\",\n    \"startDate\": \"2024-01-01T00:00:00.000Z\",\n    \"endDate\": \"2024-12-31T00:00:00.000Z\",\n    \"dayWiseTimeSlots\": [\n      {\n        \"day\": \"monday\",\n        \"timeSlots\": [\n          { \"startTime\": \"10:00\", \"endTime\": \"11:30\" }\n        ]\n      },\n      {\n        \"day\": \"wednesday\",\n        \"timeSlots\": [\n          { \"startTime\": \"10:00\", \"endTime\": \"11:30\", \"status\": \"cancelled\" }\n        ]\n      }\n    ]\n  }\n}",
+                              "options": {
+                                    "raw": {
+                                          "language": "json"
+                                    }
+                              }
+                        },
+                        "url": {
+                              "raw": "{{baseUrl}}/api/v1/calander/:id",
+                              "host": [
+                                    "{{baseUrl}}"
+                              ],
+                              "path": [
+                                    "api",
+                                    "v1",
+                                    "calander",
+                                    ":id"
+                              ],
+                              "variable": [
+                                    {
+                                          "key": "id",
+                                          "value": "REPLACE_WITH_CLASS_ID",
+                                          "description": "The ID of the parent class to update"
+                                    }
+                              ]
+                        },
+                        "description": "**Hole Update**: Updates the parent class configuration.\n\n**Behavior**:\n- If you change `recurrence`, `startTime`, `endTime`, or `isRecurring`, the system will automatically **Delete** all future instances (from today onwards) and **Regenerate** them based on the new settings.\n- Past instances are left untouched."
+                  },
+                  "response": []
+            },
+            {
+                  "name": "3. Update Single Instance (Specific Date)",
+                  "request": {
+                        "method": "PUT",
+                        "header": [
+                              {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                              }
+                        ],
+                        "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"status\": \"cancelled\",\n  \"startTime\": \"12:00\",\n  \"endTime\": \"13:00\",\n  \"location\": \"Room 101 - Special Session\"\n}",
+                              "options": {
+                                    "raw": {
+                                          "language": "json"
+                                    }
+                              }
+                        },
+                        "url": {
+                              "raw": "{{baseUrl}}/api/v1/calander/:id/instances/specific?scheduledDate=2024-05-15&startTime=10:00",
+                              "host": [
+                                    "{{baseUrl}}"
+                              ],
+                              "path": [
+                                    "api",
+                                    "v1",
+                                    "calander",
+                                    ":id",
+                                    "instances",
+                                    "specific"
+                              ],
+                              "query": [
+                                    {
+                                          "key": "scheduledDate",
+                                          "value": "2024-05-15",
+                                          "description": "The exact date of the instance to update (YYYY-MM-DD)"
+                                    },
+                                    {
+                                          "key": "startTime",
+                                          "value": "10:00",
+                                          "description": "(Optional) Filter by existing start time if multiple classes exist on the same day"
+                                    }
+                              ],
+                              "variable": [
+                                    {
+                                          "key": "id",
+                                          "value": "REPLACE_WITH_CLASS_ID",
+                                          "description": "The ID of the parent class"
+                                    }
+                              ]
+                        },
+                        "description": "**Single Instance Update**: Updates a specific instance without affecting others.\n\n**Parameters**:\n- `id`: The parent Class ID.\n- `scheduledDate`: The date of the instance you want to change.\n- `startTime` (Optional): Use this if you need to be very specific about which slot on that day to update.\n\n**Body**:\n- `status`: Update to 'cancelled', 'completed', or 'scheduled'.\n- Any other field (startTime, endTime, location, etc.) to override for just this day."
+                  },
+                  "response": []
+            }
+      ],
+      "event": [],
+      "variable": [
+            {
+                  "key": "baseUrl",
+                  "value": "http://localhost:5000",
+                  "type": "string"
+            }
+      ]
+}
