@@ -31,8 +31,6 @@ export const initializeApp = async (): Promise<Express> => {
   // CORS
   app.use(corsMiddleware);
 
-  // Rate limiting (Disabled)
-  // app.use(rateLimiter);
 
   // Request logging
   app.use(requestLogger);

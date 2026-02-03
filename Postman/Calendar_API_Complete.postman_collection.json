@@ -1,0 +1,1491 @@
+{
+      "info": {
+            "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "name": "Calendar API Complete",
+            "description": "Complete Postman collection for the Calendar API with all endpoints and dummy test data.\n\n## Base URL\n`{{baseUrl}}` = http://localhost:3000\n\n## API Version\nAll endpoints are prefixed with `/api/v1`\n\n## Features\n- Class management (CRUD)\n- Class instances for recurring classes\n- Calendar view\n- Status updates\n- Search and filtering",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+      },
+      "variable": [
+            {
+                  "key": "baseUrl",
+                  "value": "http://localhost:3000",
+                  "type": "string"
+            },
+            {
+                  "key": "apiPrefix",
+                  "value": "/api/v1",
+                  "type": "string"
+            },
+            {
+                  "key": "classId",
+                  "value": "",
+                  "type": "string"
+            },
+            {
+                  "key": "instanceId",
+                  "value": "",
+                  "type": "string"
+            }
+      ],
+      "item": [
+            {
+                  "name": "Health Check",
+                  "item": [
+                        {
+                              "name": "Server Health",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}/health",
+                                          "host": [
+                                                "{{baseUrl}}"
+                                          ],
+                                          "path": [
+                                                "health"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "API Health",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/health",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "health"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "API v1 Health",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/v1/health",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "v1",
+                                                "health"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        }
+                  ]
+            },
+            {
+                  "name": "Classes",
+                  "item": [
+                        {
+                              "name": "Create One-Time Class",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.class && jsonData.data.class._id) {",
+                                                      "    pm.collectionVariables.set('classId', jsonData.data.class._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Introduction to JavaScript\",\n    \"description\": \"A beginner-friendly workshop covering JavaScript fundamentals including variables, functions, and DOM manipulation.\",\n    \"instructor\": \"John Smith\",\n    \"location\": \"Room 101, Tech Building\",\n    \"capacity\": 30,\n    \"availability\": true,\n    \"isRecurring\": false,\n    \"scheduledDate\": \"2026-03-15\",\n    \"startTime\": \"09:00\",\n    \"endTime\": \"12:00\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Weekly Recurring Class",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.class && jsonData.data.class._id) {",
+                                                      "    pm.collectionVariables.set('classId', jsonData.data.class._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Yoga Morning Session\",\n    \"description\": \"Start your day with a refreshing yoga session. All levels welcome.\",\n    \"instructor\": \"Sarah Johnson\",\n    \"location\": \"Wellness Studio A\",\n    \"capacity\": 20,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"weekly\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2026-06-30\",\n        \"dayWiseTimeSlots\": [\n            {\n                \"day\": \"monday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"06:00\", \"endTime\": \"07:00\" },\n                    { \"startTime\": \"18:00\", \"endTime\": \"19:00\" }\n                ]\n            },\n            {\n                \"day\": \"wednesday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"06:00\", \"endTime\": \"07:00\" }\n                ]\n            },\n            {\n                \"day\": \"friday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"06:00\", \"endTime\": \"07:00\" },\n                    { \"startTime\": \"18:00\", \"endTime\": \"19:00\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Daily Recurring Class",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.class && jsonData.data.class._id) {",
+                                                      "    pm.collectionVariables.set('classId', jsonData.data.class._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Daily Standup Meeting\",\n    \"description\": \"Daily team synchronization meeting to discuss progress and blockers.\",\n    \"instructor\": \"Mike Wilson\",\n    \"location\": \"Conference Room B\",\n    \"capacity\": 15,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"daily\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2026-12-31\",\n        \"dailyTimeSlots\": [\n            { \"startTime\": \"09:00\", \"endTime\": \"09:30\" }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Monthly Recurring Class",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.class && jsonData.data.class._id) {",
+                                                      "    pm.collectionVariables.set('classId', jsonData.data.class._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Monthly Review Meeting\",\n    \"description\": \"Monthly performance review and goal-setting session.\",\n    \"instructor\": \"Emily Davis\",\n    \"location\": \"Board Room\",\n    \"capacity\": 25,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"monthly\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2027-02-01\",\n        \"monthlyDayWiseSlots\": [\n            {\n                \"day\": 1,\n                \"timeSlots\": [\n                    { \"startTime\": \"10:00\", \"endTime\": \"12:00\" }\n                ]\n            },\n            {\n                \"day\": 15,\n                \"timeSlots\": [\n                    { \"startTime\": \"14:00\", \"endTime\": \"16:00\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Yearly Recurring Class",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.class && jsonData.data.class._id) {",
+                                                      "    pm.collectionVariables.set('classId', jsonData.data.class._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Annual Company Retreat\",\n    \"description\": \"Annual team-building and strategy session for all employees.\",\n    \"instructor\": \"CEO - Robert Brown\",\n    \"location\": \"Grand Hall\",\n    \"capacity\": 200,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"yearly\",\n        \"startDate\": \"2026-06-15\",\n        \"endDate\": \"2030-06-15\",\n        \"yearlyMonth\": 5,\n        \"yearlyDay\": 15,\n        \"yearlyTimeSlots\": [\n            { \"startTime\": \"09:00\", \"endTime\": \"17:00\" }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Custom Recurring Class",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.class && jsonData.data.class._id) {",
+                                                      "    pm.collectionVariables.set('classId', jsonData.data.class._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Bi-Weekly Training Session\",\n    \"description\": \"Advanced training session held every 2 weeks.\",\n    \"instructor\": \"Training Team\",\n    \"location\": \"Training Center\",\n    \"capacity\": 40,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"custom\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2026-12-31\",\n        \"customInterval\": 2,\n        \"dayWiseTimeSlots\": [\n            {\n                \"day\": \"tuesday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"13:00\", \"endTime\": \"15:00\" }\n                ]\n            },\n            {\n                \"day\": \"thursday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"13:00\", \"endTime\": \"15:00\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get All Classes",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get All Classes with Pagination",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?page=1&limit=10",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "page",
+                                                      "value": "1"
+                                                },
+                                                {
+                                                      "key": "limit",
+                                                      "value": "10"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Classes with Status Filter",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?status=active",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "status",
+                                                      "value": "active"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Recurring Classes Only",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?isRecurring=true",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "isRecurring",
+                                                      "value": "true"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Available Classes",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?availability=true",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "availability",
+                                                      "value": "true"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Search Classes by Title/Instructor",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?search=yoga",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "search",
+                                                      "value": "yoga"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Classes in Date Range",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?startDate=2026-02-01&endDate=2026-03-31",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-03-31"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Classes with All Filters",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander?status=active&isRecurring=true&availability=true&search=yoga&startDate=2026-02-01&endDate=2026-12-31&page=1&limit=20",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "status",
+                                                      "value": "active"
+                                                },
+                                                {
+                                                      "key": "isRecurring",
+                                                      "value": "true"
+                                                },
+                                                {
+                                                      "key": "availability",
+                                                      "value": "true"
+                                                },
+                                                {
+                                                      "key": "search",
+                                                      "value": "yoga"
+                                                },
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-12-31"
+                                                },
+                                                {
+                                                      "key": "page",
+                                                      "value": "1"
+                                                },
+                                                {
+                                                      "key": "limit",
+                                                      "value": "20"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Class by ID",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Class",
+                              "request": {
+                                    "method": "PUT",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Advanced Yoga Session\",\n    \"description\": \"Updated description - Advanced yoga techniques for experienced practitioners.\",\n    \"capacity\": 25,\n    \"availability\": true\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Class Status to Cancelled",
+                              "request": {
+                                    "method": "PATCH",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"cancelled\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/status",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "status"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Class Status to Active",
+                              "request": {
+                                    "method": "PATCH",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"active\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/status",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "status"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Class Status to Completed",
+                              "request": {
+                                    "method": "PATCH",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"completed\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/status",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "status"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Regenerate Class Instances",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/regenerate",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "regenerate"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Delete Class",
+                              "request": {
+                                    "method": "DELETE",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        }
+                  ]
+            },
+            {
+                  "name": "Instances",
+                  "item": [
+                        {
+                              "name": "Get All Instances in Date Range",
+                              "event": [
+                                    {
+                                          "listen": "test",
+                                          "script": {
+                                                "exec": [
+                                                      "var jsonData = pm.response.json();",
+                                                      "if (jsonData.data && jsonData.data.length > 0 && jsonData.data[0]._id) {",
+                                                      "    pm.collectionVariables.set('instanceId', jsonData.data[0]._id);",
+                                                      "}"
+                                                ],
+                                                "type": "text/javascript"
+                                          }
+                                    }
+                              ],
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances?startDate=2026-02-01&endDate=2026-03-31",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-03-31"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Instances with Status Filter",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances?startDate=2026-02-01&endDate=2026-12-31&status=scheduled",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-12-31"
+                                                },
+                                                {
+                                                      "key": "status",
+                                                      "value": "scheduled"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Cancelled Instances",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances?startDate=2026-02-01&endDate=2026-12-31&status=cancelled",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-12-31"
+                                                },
+                                                {
+                                                      "key": "status",
+                                                      "value": "cancelled"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Completed Instances",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances?startDate=2026-02-01&endDate=2026-12-31&status=completed",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-12-31"
+                                                },
+                                                {
+                                                      "key": "status",
+                                                      "value": "completed"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Instances by Class ID",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/instances",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "instances"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Instances by Class ID with Pagination",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/instances?page=1&limit=20",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "instances"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "page",
+                                                      "value": "1"
+                                                },
+                                                {
+                                                      "key": "limit",
+                                                      "value": "20"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Instance Status (PATCH)",
+                              "request": {
+                                    "method": "PATCH",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"cancelled\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances/{{instanceId}}",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances",
+                                                "{{instanceId}}"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Instance Details (PUT)",
+                              "request": {
+                                    "method": "PUT",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"startTime\": \"10:00\",\n    \"endTime\": \"11:30\",\n    \"status\": \"scheduled\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances/{{instanceId}}",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances",
+                                                "{{instanceId}}"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Instance by Date (Specific)",
+                              "request": {
+                                    "method": "PUT",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"cancelled\",\n    \"startTime\": \"09:30\",\n    \"endTime\": \"10:30\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/instances/specific?scheduledDate=2026-02-10&startTime=09:00",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "instances",
+                                                "specific"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "scheduledDate",
+                                                      "value": "2026-02-10"
+                                                },
+                                                {
+                                                      "key": "startTime",
+                                                      "value": "09:00"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update All Instances of a Class",
+                              "request": {
+                                    "method": "PUT",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"cancelled\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/instances/all",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "instances",
+                                                "all"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        }
+                  ]
+            },
+            {
+                  "name": "Calendar View",
+                  "item": [
+                        {
+                              "name": "Get Calendar View - Week",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/calendar?startDate=2026-02-01&endDate=2026-02-07",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "calendar"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-02-07"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Calendar View - Month",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/calendar?startDate=2026-02-01&endDate=2026-02-28",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "calendar"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-02-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-02-28"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Calendar View - Quarter",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/calendar?startDate=2026-01-01&endDate=2026-03-31",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "calendar"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-01-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-03-31"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        }
+                  ]
+            },
+            {
+                  "name": "Error Cases",
+                  "item": [
+                        {
+                              "name": "Create Class - Missing Title",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"description\": \"Test class without title\",\n    \"isRecurring\": false,\n    \"scheduledDate\": \"2026-03-01\",\n    \"startTime\": \"10:00\",\n    \"endTime\": \"11:00\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Class - Invalid Time Format",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Test Class\",\n    \"isRecurring\": false,\n    \"scheduledDate\": \"2026-03-01\",\n    \"startTime\": \"25:00\",\n    \"endTime\": \"26:00\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Class - End Time Before Start Time",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Test Class\",\n    \"isRecurring\": false,\n    \"scheduledDate\": \"2026-03-01\",\n    \"startTime\": \"14:00\",\n    \"endTime\": \"12:00\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Create Weekly Class - Missing Days",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Weekly Class Missing Days\",\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"weekly\",\n        \"startDate\": \"2026-02-01\",\n        \"dayWiseTimeSlots\": []\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Class - Invalid ID",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/invalid-id",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "invalid-id"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Class - Non-existent ID",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/507f1f77bcf86cd799439011",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "507f1f77bcf86cd799439011"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Update Class Status - Invalid Status",
+                              "request": {
+                                    "method": "PATCH",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"status\": \"invalid-status\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/status",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "status"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Instances - Missing Dates",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Get Instances - End Date Before Start Date",
+                              "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/instances?startDate=2026-03-01&endDate=2026-01-01",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "instances"
+                                          ],
+                                          "query": [
+                                                {
+                                                      "key": "startDate",
+                                                      "value": "2026-03-01"
+                                                },
+                                                {
+                                                      "key": "endDate",
+                                                      "value": "2026-01-01"
+                                                }
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "Regenerate - Non-Recurring Class",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [],
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander/{{classId}}/regenerate",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander",
+                                                "{{classId}}",
+                                                "regenerate"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        }
+                  ]
+            },
+            {
+                  "name": "Sample Workflows",
+                  "item": [
+                        {
+                              "name": "1. Create Fitness Class Schedule",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"HIIT Workout\",\n    \"description\": \"High-intensity interval training to burn calories and build endurance.\",\n    \"instructor\": \"Alex Thompson\",\n    \"location\": \"Fitness Studio B\",\n    \"capacity\": 15,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"weekly\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2026-08-31\",\n        \"dayWiseTimeSlots\": [\n            {\n                \"day\": \"monday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"07:00\", \"endTime\": \"08:00\" },\n                    { \"startTime\": \"17:30\", \"endTime\": \"18:30\" }\n                ]\n            },\n            {\n                \"day\": \"wednesday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"07:00\", \"endTime\": \"08:00\" },\n                    { \"startTime\": \"17:30\", \"endTime\": \"18:30\" }\n                ]\n            },\n            {\n                \"day\": \"friday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"07:00\", \"endTime\": \"08:00\" }\n                ]\n            },\n            {\n                \"day\": \"saturday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"09:00\", \"endTime\": \"10:00\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "2. Create Music Lesson Schedule",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Piano Lessons - Beginners\",\n    \"description\": \"Weekly piano lessons for beginners. Learn music fundamentals and basic techniques.\",\n    \"instructor\": \"Maria Garcia\",\n    \"location\": \"Music Room 1\",\n    \"capacity\": 8,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"weekly\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2026-12-31\",\n        \"dayWiseTimeSlots\": [\n            {\n                \"day\": \"tuesday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"15:00\", \"endTime\": \"16:00\" },\n                    { \"startTime\": \"16:00\", \"endTime\": \"17:00\" },\n                    { \"startTime\": \"17:00\", \"endTime\": \"18:00\" }\n                ]\n            },\n            {\n                \"day\": \"thursday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"15:00\", \"endTime\": \"16:00\" },\n                    { \"startTime\": \"16:00\", \"endTime\": \"17:00\" }\n                ]\n            },\n            {\n                \"day\": \"saturday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"10:00\", \"endTime\": \"11:00\" },\n                    { \"startTime\": \"11:00\", \"endTime\": \"12:00\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "3. Create Workshop Series",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Photography Masterclass\",\n    \"description\": \"Monthly photography workshop covering different techniques and genres.\",\n    \"instructor\": \"David Chen\",\n    \"location\": \"Art Studio\",\n    \"capacity\": 12,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"monthly\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2027-01-31\",\n        \"monthlyDayWiseSlots\": [\n            {\n                \"day\": 5,\n                \"timeSlots\": [\n                    { \"startTime\": \"10:00\", \"endTime\": \"13:00\" }\n                ]\n            },\n            {\n                \"day\": 20,\n                \"timeSlots\": [\n                    { \"startTime\": \"14:00\", \"endTime\": \"17:00\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "4. Create One-Time Special Event",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Spring Networking Mixer\",\n    \"description\": \"Join us for an evening of professional networking, refreshments, and industry insights.\",\n    \"instructor\": \"Events Team\",\n    \"location\": \"Grand Ballroom\",\n    \"capacity\": 150,\n    \"availability\": true,\n    \"isRecurring\": false,\n    \"scheduledDate\": \"2026-04-15\",\n    \"startTime\": \"18:00\",\n    \"endTime\": \"21:00\"\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        },
+                        {
+                              "name": "5. Create Language Class Schedule",
+                              "request": {
+                                    "method": "POST",
+                                    "header": [
+                                          {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                          }
+                                    ],
+                                    "body": {
+                                          "mode": "raw",
+                                          "raw": "{\n    \"title\": \"Spanish for Beginners\",\n    \"description\": \"Learn conversational Spanish from scratch. Perfect for travel and daily communication.\",\n    \"instructor\": \"Carlos Martinez\",\n    \"location\": \"Language Lab A\",\n    \"capacity\": 18,\n    \"availability\": true,\n    \"isRecurring\": true,\n    \"recurrence\": {\n        \"type\": \"weekly\",\n        \"startDate\": \"2026-02-01\",\n        \"endDate\": \"2026-07-31\",\n        \"dayWiseTimeSlots\": [\n            {\n                \"day\": \"monday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"19:00\", \"endTime\": \"20:30\" }\n                ]\n            },\n            {\n                \"day\": \"wednesday\",\n                \"timeSlots\": [\n                    { \"startTime\": \"19:00\", \"endTime\": \"20:30\" }\n                ]\n            }\n        ]\n    }\n}"
+                                    },
+                                    "url": {
+                                          "raw": "{{baseUrl}}{{apiPrefix}}/calander",
+                                          "host": [
+                                                "{{baseUrl}}{{apiPrefix}}"
+                                          ],
+                                          "path": [
+                                                "calander"
+                                          ]
+                                    }
+                              },
+                              "response": []
+                        }
+                  ]
+            }
+      ]
+}

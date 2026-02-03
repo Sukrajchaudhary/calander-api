@@ -484,7 +484,6 @@ class CalanderService {
 
       /**
        * Update a specific instance status
-       * @deprecated Use updateInstance instead
        */
       async updateInstanceStatus(
             instanceId: string,
@@ -572,14 +571,12 @@ class CalanderService {
             // Get one-time classes
             const oneTimeClasses = await Class.find({
                   isRecurring: false,
-                  // status: 'active', // REMOVED: Show all statuses
                   scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
             }).lean();
 
             // Get recurring class instances
             const instances = await ClassInstance.find({
                   scheduledDate: { $gte: startDate, $lte: adjustedEndDate },
-                  // status: { $ne: 'cancelled' }, // REMOVED: Show all statuses
             })
                   .populate('classId', 'title description instructor location capacity status')
                   .lean();

@@ -22,10 +22,6 @@ const startServer = async (): Promise<void> => {
       console.log(`\n⚠ ${signal} signal received`);
       server.close(async () => {
         console.log('✓ Server closed');
-
-        // Disconnect Redis
-
-
         process.exit(0);
       });
 

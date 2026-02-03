@@ -14,9 +14,6 @@ import {
 
 const router: Router = Router();
 
-// =====================================================
-// CLASS ROUTES
-// =====================================================
 
 /**
  * @route   GET /api/v1/calander
@@ -138,7 +135,7 @@ router.post('/:id/regenerate', validateClassId, CalanderController.regenerateIns
  */
 router.put(
       '/:id/instances/all',
-      validateUpdateInstance, // Re-use validator as it checks body fields
+      validateUpdateInstance,
       CalanderController.updateAllInstances
 );
 
